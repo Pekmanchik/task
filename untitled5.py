@@ -28,9 +28,9 @@ excel_invoice_path_pekerman = "/Users/maksimpekerman/Desktop/Счет №.xlsx"
 excel_act_path_pekerman = "/Users/maksimpekerman/Desktop/АКТ №.xlsx"
 word_contract_path_pekerman = "/Users/maksimpekerman/Desktop/контракт №.docx"
 
-excel_invoice_path_gredushko = "/Users/maksimpekerman/Desktop/Счет № Гредюшко №.xlsx"
+excel_invoice_path_gredushko = "/Users/maksimpekerman/Desktop/Счет № Гредюшко.xlsx"
 excel_act_path_gredushko = "/Users/maksimpekerman/Desktop/АКТ № Гредюшко.xlsx"
-word_contract_path_gredushko = "/Users/maksimpekerman/Desktop/Контракт № Гредюшко .xlsx"
+word_contract_path_gredushko = "/Users/maksimpekerman/Desktop/Контракт № Гредюшко.docx"
 
 service_dict = {
         'Неисправность сетей ГВС': 'Ремонт системы ГВС',
@@ -159,7 +159,7 @@ def update_invoice(service_dict,worksheet, row, db_row, initial_number, service_
                 worksheet['B18'].font = arial_12
                 worksheet['B18'].alignment = alignment_center
     except Exception as e:
-            messagebox.showerror("Ошибка счет", f"Не удалось обновить счет файл: {str(e)}")
+        messagebox.showerror("Ошибка счет", f"Не удалось обновить счет файл: {str(e)}")
 
 def update_date_in_second_paragraph(doc):
     if len(doc.paragraphs) > 1:
@@ -261,7 +261,6 @@ def update_word_table(doc, db_row):
         run.font.size = Pt(font_size)
 
 def insert_name_in_document(doc, full_name):
-        # Проверка и обновление 50-го параграфа, если он существует
     if len(doc.paragraphs) >= 50:
         paragraph = doc.paragraphs[49]  # Индексация начинается с 0, поэтому 50-й параграф будет под индексом 49
         if len(paragraph.runs) >= 2:
@@ -277,7 +276,7 @@ def insert_name_in_document(doc, full_name):
         
 def update_word_documents(doc, row, db_row, initial_number):
     try:
-        if "Пекерман" in str(row[16]):    
+        if "Пекерман" in str(row[16]):
             for paragraph in doc.paragraphs:
                 if "КОНТРАКТ №" in paragraph.text:
                     for run in paragraph.runs:  # Итерация по всем runs внутри параграфа
@@ -311,7 +310,7 @@ def update_word_documents(doc, row, db_row, initial_number):
         
         insert_name_in_document(doc, db_row["Principal_Name"])
     except Exception as e:
-            messagebox.showerror("Ошибка word", f"Не удалось обновить word файлы: {str(e)}")
+        messagebox.showerror("Ошибка word", f"Не удалось обновить word файлы: {str(e)}")
 
 def update_act(service_dict,worksheet, db_row, row, initial_number, service_type):
     try:
@@ -349,7 +348,7 @@ def update_act(service_dict,worksheet, db_row, row, initial_number, service_type
                 
             worksheet['B29'].value = f"Директор {formatted_name}"
     except Exception as e:
-            messagebox.showerror("Ошибка акт", f"Не удалось обновить акт файл: {str(e)}")
+        messagebox.showerror("Ошибка акт", f"Не удалось обновить акт файл: {str(e)}")
 def update_files(data_df, root): 
     if data_df is None:
         return
@@ -364,6 +363,10 @@ def update_files(data_df, root):
     try:   
         for index, row in data_df.iterrows():
             try:
+                service_type = row[14]  # Assuming row[14] contains the service type
+                if service_type is None or service_type not in service_dict:
+                    print(f"Invalid or missing service type for row {index}.")
+                continue
                 if row[11] == 5088 and 'Итого' not in str(row[1]):
                     try:
                         if pd.notna(row[2]):
@@ -404,18 +407,18 @@ def update_files(data_df, root):
                                 workbook_act = openpyxl.load_workbook(excel_act_path_gredushko)
                                 worksheet_act = workbook_act.active
                                 doc_contract = Document(word_contract_path_gredushko)
-    
-                            update_word_documents(doc_contract, row, db_row, initial_number)
-                            update_invoice(worksheet_invoice, row, db_row, initial_number, row[14])
-                            update_act(worksheet_act, row, db_row, initial_number, row[14])
-    
-                            workbook_invoice.save(os.path.join(set_folder_path, f"Счет № {initial_number}.xlsx"))
-                            workbook_act.save(os.path.join(set_folder_path, f"АКТ № {initial_number}.xlsx"))
-                            doc_contract.save(os.path.join(set_folder_path, f"Контракт № {initial_number}.docx"))
-                            initial_number += 1
                         except Exception as e:
                             print(f"Ошибка при обработке и сохранении документов: {e}")
                         break  # Этот break должен быть внутри блока if pattern.search(search_target)
+                        update_word_documents(doc_contract, row, db_row, initial_number)
+                        update_invoice(service_dict, worksheet_invoice, row, db_row, initial_number, service_type)
+                        update_act(service_dict, worksheet_act, row, db_row, initial_number, service_type)
+        
+                        workbook_invoice.save(os.path.join(set_folder_path, f"Счет № {initial_number}.xlsx"))
+                        workbook_act.save(os.path.join(set_folder_path, f"АКТ № {initial_number}.xlsx"))
+                        doc_contract.save(os.path.join(set_folder_path, f"Контракт № {initial_number}.docx"))
+                        initial_number += 1
+                        
                 else:
                     print(f"Строка {index} пропущена по условиям фильтрации.")
             except Exception as e:
