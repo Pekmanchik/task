@@ -401,24 +401,33 @@ def update_files(data_df, root):
                                 workbook_act = openpyxl.load_workbook(excel_act_path_pekerman)
                                 worksheet_act = workbook_act.active
                                 doc_contract = Document(word_contract_path_pekerman)
+                                
+                                update_word_documents(doc_contract, row, db_row, initial_number)
+                                update_invoice(service_dict, worksheet_invoice, row, db_row, initial_number, service_type)
+                                update_act(service_dict, worksheet_act, row, db_row, initial_number, service_type)
+                
+                                workbook_invoice.save(os.path.join(set_folder_path, f"Счет № {initial_number}.xlsx"))
+                                workbook_act.save(os.path.join(set_folder_path, f"АКТ № {initial_number}.xlsx"))
+                                doc_contract.save(os.path.join(set_folder_path, f"Контракт № {initial_number}.docx"))
+                                initial_number += 1
                             elif "Гредюшко" in str(row[16]):
                                 workbook_invoice = openpyxl.load_workbook(excel_invoice_path_gredushko)
                                 worksheet_invoice = workbook_invoice.active
                                 workbook_act = openpyxl.load_workbook(excel_act_path_gredushko)
                                 worksheet_act = workbook_act.active
                                 doc_contract = Document(word_contract_path_gredushko)
+                                
+                                update_word_documents(doc_contract, row, db_row, initial_number)
+                                update_invoice(service_dict, worksheet_invoice, row, db_row, initial_number, service_type)
+                                update_act(service_dict, worksheet_act, row, db_row, initial_number, service_type)
+                
+                                workbook_invoice.save(os.path.join(set_folder_path, f"Счет № {initial_number}.xlsx"))
+                                workbook_act.save(os.path.join(set_folder_path, f"АКТ № {initial_number}.xlsx"))
+                                doc_contract.save(os.path.join(set_folder_path, f"Контракт № {initial_number}.docx"))
+                                initial_number += 1
                         except Exception as e:
                             print(f"Ошибка при обработке и сохранении документов: {e}")
                         break  # Этот break должен быть внутри блока if pattern.search(search_target)
-                        update_word_documents(doc_contract, row, db_row, initial_number)
-                        update_invoice(service_dict, worksheet_invoice, row, db_row, initial_number, service_type)
-                        update_act(service_dict, worksheet_act, row, db_row, initial_number, service_type)
-        
-                        workbook_invoice.save(os.path.join(set_folder_path, f"Счет № {initial_number}.xlsx"))
-                        workbook_act.save(os.path.join(set_folder_path, f"АКТ № {initial_number}.xlsx"))
-                        doc_contract.save(os.path.join(set_folder_path, f"Контракт № {initial_number}.docx"))
-                        initial_number += 1
-                        
                 else:
                     print(f"Строка {index} пропущена по условиям фильтрации.")
             except Exception as e:
